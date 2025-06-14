@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - V Mart{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Header -->
+        <div class="col-12 mb-4">
+            <h2 class="text-primary"><i class="fas fa-chart-bar me-2"></i>Inventory Dashboard</h2>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="col-12 mb-4">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Products</h6>
+                                    <h2 class="mb-0">{{ total_products }}</h2>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-boxes fa-2x opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Inventory Value</h6>
+                                    <h2 class="mb-0">${{ "%.2f"|format(total_value) }}</h2>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-dollar-sign fa-2x opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Low Stock Items</h6>
+                                    <h2 class="mb-0">{{ low_stock_count }}</h2>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-exclamation-triangle fa-2x opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Out of Stock</h6>
+                                    <h2 class="mb-0">{{ out_of_stock_count }}</h2>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-times-circle fa-2x opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Statistics -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Category Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Products</th>
+                                    <th>Total Quantity</th>
+                                    <th>Total Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stat in category_stats %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ stat.category }}</span>
+                                        </td>
+                                        <td>{{ stat.count }}</td>
+                                        <td>{{ stat.total_quantity or 0 }}</td>
+                                        <td>${{ "%.2f"|format(stat.total_value or 0) }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Products -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Recently Added</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_products %}
+                        <div class="list-group list-group-flush">
+                            {% for product in recent_products %}
+                                <div class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold">{{ product.name }}</div>
+                                        <small class="text-muted">{{ product.category }}</small>
+                                    </div>
+                                    <span class="badge bg-primary rounded-pill">${{ "%.2f"|format(product.price) }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No recent products</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Low Stock Alerts -->
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Low Stock Alerts</h5>
+                </div>
+                <div class="card-body">
+                    {% if low_stock_products %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Category</th>
+                                        <th>Current Stock</th>
+                                        <th>Min Level</th>
+                                        <th>Price</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for product in low_stock_products %}
+                                        <tr>
+                                            <td>
+                                                <div class="fw-bold">{{ product.name }}</div>
+                                                <small class="text-muted">{{ product.description[:50] }}...</small>
+                                            </td>
+                                            <td><span class="badge bg-secondary">{{ product.category }}</span></td>
+                                            <td>
+                                                <span class="badge bg-warning text-dark">{{ product.quantity }}</span>
+                                            </td>
+                                            <td>{{ product.min_stock_level }}</td>
+                                            <td>${{ "%.2f"|format(product.price) }}</td>
+                                            <td>
+                                                <a href="{{ url_for('edit_product', product_id=product.id) }}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-edit me-1"></i>Restock
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-check-circle fa-3x text-success mb-2"></i>
+                            <p class="text-success mb-0">All products are well stocked!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Add any charts or interactive elements here if needed
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh alerts every 30 seconds
+    setInterval(function() {
+        // You could add AJAX calls here to update alerts dynamically
+    }, 30000);
+});
+</script>
+{% endblock %}
