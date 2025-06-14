@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Add Product - V Mart{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-primary"><i class="fas fa-plus me-2"></i>Add New Product</h2>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Inventory
+                </a>
+            </div>
+
+            <!-- Add Product Form -->
+            <div class="card shadow">
+                <div class="card-body">
+                    <form method="POST" novalidate>
+                        <div class="row g-3">
+                            <!-- Product Name -->
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">Product Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                                <div class="invalid-feedback">Please provide a product name.</div>
+                            </div>
+
+                            <!-- Category -->
+                            <div class="col-md-6">
+                                <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <select class="form-select" id="category" name="category" required>
+                                        <option value="">Choose category...</option>
+                                        {% for cat in categories %}
+                                            <option value="{{ cat }}">{{ cat }}</option>
+                                        {% endfor %}
+                                        <option value="Fruits">Fruits</option>
+                                        <option value="Vegetables">Vegetables</option>
+                                        <option value="Dairy">Dairy</option>
+                                        <option value="Meat & Seafood">Meat & Seafood</option>
+                                        <option value="Beverages">Beverages</option>
+                                        <option value="Pantry">Pantry</option>
+                                        <option value="Snacks">Snacks</option>
+                                        <option value="Frozen">Frozen</option>
+                                        <option value="Bakery">Bakery</option>
+                                        <option value="Health">Health</option>
+                                    </select>
+                                    <input type="text" class="form-control" id="custom-category" 
+                                           placeholder="Or enter new category" style="display: none;">
+                                </div>
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="new-category-toggle">
+                                    <label class="form-check-label" for="new-category-toggle">
+                                        Add new category
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="col-12">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3" 
+                                          placeholder="Enter product description..."></textarea>
+                            </div>
+
+                            <!-- Price -->
+                            <div class="col-md-4">
+                                <label for="price" class="form-label">Price ($) <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="price" name="price" 
+                                           step="0.01" min="0" required>
+                                </div>
+                                <div class="invalid-feedback">Please provide a valid price.</div>
+                            </div>
+
+                            <!-- Quantity -->
+                            <div class="col-md-4">
+                                <label for="quantity" class="form-label">Quantity <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="quantity" name="quantity" 
+                                       min="0" required>
+                                <div class="invalid-feedback">Please provide a valid quantity.</div>
+                            </div>
+
+                            <!-- Minimum Stock Level -->
+                            <div class="col-md-4">
+                                <label for="min_stock_level" class="form-label">Min Stock Level</label>
+                                <input type="number" class="form-control" id="min_stock_level" name="min_stock_level" 
+                                       min="0" value="10">
+                                <div class="form-text">Alert when stock falls below this level</div>
+                            </div>
+
+                            <!-- Barcode -->
+                            <div class="col-md-6">
+                                <label for="barcode" class="form-label">Barcode</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-barcode"></i></span>
+                                    <input type="text" class="form-control" id="barcode" name="barcode" 
+                                           placeholder="Enter barcode if available">
+                                </div>
+                            </div>
+
+                            <!-- Image URL -->
+                            <div class="col-md-6">
+                                <label for="image_url" class="form-label">Image URL</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-image"></i></span>
+                                    <input type="url" class="form-control" id="image_url" name="image_url" 
+                                           placeholder="https://example.com/image.jpg">
+                                </div>
+                            </div>
+
+                            <!-- Image Preview -->
+                            <div class="col-12">
+                                <div id="image-preview" class="text-center" style="display: none;">
+                                    <img id="preview-img" src="" alt="Preview" class="img-thumbnail" 
+                                         style="max-width: 200px; max-height: 200px;">
+                                </div>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="col-12 mt-4">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-plus me-2"></i>Add Product
+                                    </button>
+                                    <button type="reset" class="btn btn-outline-secondary">
+                                        <i class="fas fa-undo me-2"></i>Reset Form
+                                    </button>
+                                    <a href="{{ url_for('index') }}" class="btn btn-outline-danger">
+                                        <i class="fas fa-times me-2"></i>Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+
+    // Category toggle
+    const categorySelect = document.getElementById('category');
+    const customCategoryInput = document.getElementById('custom-category');
+    const newCategoryToggle = document.getElementById('new-category-toggle');
+
+    newCategoryToggle.addEventListener('change', function() {
+        if (this.checked) {
+            categorySelect.style.display = 'none';
+            customCategoryInput.style.display = 'block';
+            customCategoryInput.name = 'category';
+            categorySelect.name = '';
+            customCategoryInput.required = true;
+            categorySelect.required = false;
+        } else {
+            categorySelect.style.display = 'block';
+            customCategoryInput.style.display = 'none';
+            categorySelect.name = 'category';
+            customCategoryInput.name = '';
+            categorySelect.required = true;
+            customCategoryInput.required = false;
+        }
+    });
+
+    // Image preview
+    const imageUrlInput = document.getElementById('image_url');
+    const imagePreview = document.getElementById('image-preview');
+    const previewImg = document.getElementById('preview-img');
+
+    imageUrlInput.addEventListener('input', function() {
+        const url = this.value.trim();
+        if (url) {
+            previewImg.src = url;
+            imagePreview.style.display = 'block';
+            
+            previewImg.onerror = function() {
+                imagePreview.style.display = 'none';
+            };
+        } else {
+            imagePreview.style.display = 'none';
+        }
+    });
+
+    // Auto-generate barcode
+    document.getElementById('name').addEventListener('input', function() {
+        const barcodeInput = document.getElementById('barcode');
+        if (!barcodeInput.value) {
+            // Generate a simple barcode based on product name
+            const timestamp = Date.now().toString().slice(-6);
+            const nameHash = this.value.replace(/\s+/g, '').slice(0, 4).toUpperCase();
+            barcodeInput.value = `VMT${nameHash}${timestamp}`;
+        }
+    });
+});
+</script>
+{% endblock %}
