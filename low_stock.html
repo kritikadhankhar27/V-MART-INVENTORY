@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}Low Stock Report - V Mart Inventory{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h2">
+                <i class="fas fa-exclamation-triangle text-warning me-2"></i>Low Stock Report
+            </h1>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if products %}
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Low Stock Items</h5>
+                            <h3 class="mb-0">{{ products|length }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-exclamation-triangle fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Critical (0 stock)</h5>
+                            <h3 class="mb-0">{{ products|selectattr('stock_quantity', '==', 0)|list|length }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-times-circle fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Avg. Stock Level</h5>
+                            <h3 class="mb-0">
+                                {% if products %}
+                                    {{ "%.1f"|format((products|sum(attribute='stock_quantity')) / (products|length)) }}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-chart-bar fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Low Stock Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Low Stock Products</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Priority</th>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Supplier</th>
+                            <th>Current Stock</th>
+                            <th>Min. Level</th>
+                            <th>Stock Level</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td>
+                                {% set stock_ratio = (product.stock_quantity / product.min_stock_level) if product.min_stock_level > 0 else 0 %}
+                                {% if product.stock_quantity == 0 %}
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-exclamation-circle me-1"></i>Critical
+                                    </span>
+                                {% elif stock_ratio <= 0.25 %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>Very Low
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-info-circle me-1"></i>Low
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div>
+                                    <strong>{{ product.name }}</strong>
+                                    {% if product.description %}
+                                        <br><small class="text-muted">{{ product.description }}</small>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ product.category_name or 'N/A' }}</span>
+                            </td>
+                            <td>{{ product.supplier_name or 'N/A' }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if product.stock_quantity == 0 %}bg-danger
+                                    {% elif product.stock_quantity <= product.min_stock_level * 0.25 %}bg-warning text-dark
+                                    {% else %}bg-info
+                                    {% endif %}">
+                                    {{ product.stock_quantity }}
+                                </span>
+                            </td>
+                            <td>{{ product.min_stock_level }}</td>
+                            <td>
+                                <div class="progress" style="height: 20px;">
+                                    {% set stock_percentage = (product.stock_quantity / product.min_stock_level * 100) if product.min_stock_level > 0 else 0 %}
+                                    <div class="progress-bar 
+                                        {% if stock_percentage == 0 %}bg-danger
+                                        {% elif stock_percentage <= 25 %}bg-warning
+                                        {% else %}bg-info
+                                        {% endif %}" 
+                                        role="progressbar" 
+                                        style="width: {{ min(stock_percentage, 100) }}%"
+                                        aria-valuenow="{{ stock_percentage }}" 
+                                        aria-valuemin="0" 
+                                        aria-valuemax="100">
+                                        {{ "%.0f"|format(stock_percentage) }}%
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('edit_product', product_id=product.product_id) }}" 
+                                       class="btn btn-outline-primary" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{{ url_for('delete_product', product_id=product.product_id) }}" 
+                                       class="btn btn-outline-danger" title="Delete"
+                                       onclick="return confirm('Are you sure you want to delete {{ product.name }}?')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Level Chart -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">Stock Level Distribution</h5>
+        </div>
+        <div class="card-body">
+            <canvas id="stockChart" height="100"></canvas>
+        </div>
+    </div>
+
+{% else %}
+    <!-- No Low Stock Items -->
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+            <h4>All Products Well Stocked!</h4>
+            <p class="text-muted">No products are currently below their minimum stock levels.</p>
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+{% if products %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Stock Level Chart
+    const ctx = document.getElementById('stockChart').getContext('2d');
+    
+    const products = {{ products|tojson }};
+    const labels = products.map(p => p.name);
+    const stockData = products.map(p => p.stock_quantity);
+    const minLevels = products.map(p => p.min_stock_level);
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Current Stock',
+                data: stockData,
+                backgroundColor: stockData.map((stock, index) => {
+                    const minLevel = minLevels[index];
+                    if (stock === 0) return 'rgba(220, 53, 69, 0.8)';
+                    if (stock <= minLevel * 0.25) return 'rgba(255, 193, 7, 0.8)';
+                    return 'rgba(13, 202, 240, 0.8)';
+                }),
+                borderColor: stockData.map((stock, index) => {
+                    const minLevel = minLevels[index];
+                    if (stock === 0) return 'rgba(220, 53, 69, 1)';
+                    if (stock <= minLevel * 0.25) return 'rgba(255, 193, 7, 1)';
+                    return 'rgba(13, 202, 240, 1)';
+                }),
+                borderWidth: 1
+            }, {
+                label: 'Minimum Level',
+                data: minLevels,
+                type: 'line',
+                borderColor: 'rgba(108, 117, 125, 1)',
+                backgroundColor: 'rgba(108, 117, 125, 0.1)',
+                borderWidth: 2,
+                fill: false,
+                pointRadius: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Current Stock vs Minimum Levels'
+                },
+                legend: {
+                    display: true
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Quantity'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Products'
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

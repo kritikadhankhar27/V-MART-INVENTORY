@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Product - V Mart Inventory{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-edit me-2"></i>Edit Product: {{ product.name }}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Product Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       value="{{ product.name }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="price" class="form-label">Price ($) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="price" name="price" 
+                                       step="0.01" min="0" value="{{ product.price }}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" 
+                                  placeholder="Enter product description...">{{ product.description or '' }}</textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="category_id" class="form-label">Category <span class="text-danger">*</span></label>
+                                <select class="form-select" id="category_id" name="category_id" required>
+                                    <option value="">Select a category</option>
+                                    {% for category in categories %}
+                                        <option value="{{ category.category_id }}"
+                                                {% if category.category_id == product.category_id %}selected{% endif %}>
+                                            {{ category.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="supplier_id" class="form-label">Supplier <span class="text-danger">*</span></label>
+                                <select class="form-select" id="supplier_id" name="supplier_id" required>
+                                    <option value="">Select a supplier</option>
+                                    {% for supplier in suppliers %}
+                                        <option value="{{ supplier.supplier_id }}"
+                                                {% if supplier.supplier_id == product.supplier_id %}selected{% endif %}>
+                                            {{ supplier.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="stock_quantity" class="form-label">Stock Quantity <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="stock_quantity" name="stock_quantity" 
+                                       min="0" value="{{ product.stock_quantity }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="min_stock_level" class="form-label">Minimum Stock Level</label>
+                                <input type="number" class="form-control" id="min_stock_level" name="min_stock_level" 
+                                       min="0" value="{{ product.min_stock_level }}">
+                                <div class="form-text">Alert when stock falls below this level</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product Info -->
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title">Product Information</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <small class="text-muted">Created: {{ product.created_at }}</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <small class="text-muted">Last Updated: {{ product.updated_at }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                        </a>
+                        <div>
+                            <a href="{{ url_for('delete_product', product_id=product.product_id) }}" 
+                               class="btn btn-outline-danger me-2"
+                               onclick="return confirm('Are you sure you want to delete this product?')">
+                                <i class="fas fa-trash me-1"></i>Delete
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Update Product
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+        }
+    });
+    
+    // Remove invalid class on input
+    document.querySelectorAll('.form-control, .form-select').forEach(field => {
+        field.addEventListener('input', function() {
+            this.classList.remove('is-invalid');
+        });
+    });
+});
+</script>
+{% endblock %}
